@@ -56,9 +56,11 @@ async function fetchStreamData(url, payload) {
    const apiKey = localStorage.getItem('SJ_API_KEY');
 
    alert(apiKey);
-   if (apiKey === null) {
+   if (apiKey === null || apiKey === undefined || apiKey == "null" || apiKey == "undefined")  {
      apiKey = getQueryParam('api_key');
    }
+   alert(apiKey);
+   
    console.log(conversationID);
     var responseText = "";
     try {

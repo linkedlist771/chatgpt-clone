@@ -404,6 +404,9 @@ const set_conversation = async (conversation_id) => {
 const new_conversation = async () => {
   history.pushState({}, null, `/chat/`);
   window.conversation_id = uuid();
+  if(conversationID !== null) {
+    conversationID = null;
+  }
 
   await clear_conversation();
   await load_conversations(20, 0, true);

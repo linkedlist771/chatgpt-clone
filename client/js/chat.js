@@ -12,6 +12,104 @@ const stop_generating = document.querySelector(`.stop_generating`);
 const send_button = document.querySelector(`#send-button`);
 let prompt_lock = false;
 
+
+
+//
+
+
+const url = "https://claude3.edu.cn.ucas.life";
+const route = "/api/v1/claude/chat";
+const streamingUrl = `${url}${route}`;
+let conversationID = null;
+
+
+function generatePayLoad(message) {
+
+  const chosenModel = $("#model option:selected").text();
+  var payload = {
+    "stream": true,
+    "model": chosenModel,
+    "message": message
+  }
+    ;
+  if (conversationID === null) {
+
+  }
+  else {
+    payload["conversation_id"] = conversationID;
+  }
+
+  return payload;
+
+ 
+}
+
+
+async function fetchStreamData(url, payload) {
+
+    // 这里能从     localStorage.setItem('SJ_API_KEY', apiKey);
+   // 这个地方获取吗？
+   const apiKey = localStorage.getItem('SJ_API_KEY');
+   console.log(conversationID);
+    var responseText = "";
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // 指定请求体格式为 JSON
+                'Authorization': apiKey
+            },
+            body: JSON.stringify(payload) // 将 payload 对象转换为 JSON 字符串
+        });
+
+        const reader = response.body.getReader();
+        const stream = new ReadableStream({
+            async start(controller) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    controller.enqueue(value);
+                    let text = new TextDecoder().decode(value);
+                    console.log(text);
+                    if (text.startsWith('<')) {
+                        const regex = /<.*?>/;
+                        const match = text.match(regex);
+                        if (match) {
+                            if (conversationID === null) {
+                                conversationID = match[0].slice(1, -1);
+                            }
+                            // replace the match part with empty string
+                            text = text.replace(regex, '');
+                        }
+                    }
+                    // 使用marked.js将Markdown转换为HTML
+                    responseText = responseText + text;
+                    // element.html(htmlText);
+                    document.getElementById(`gpt_${window.token}`).innerHTML =
+                    markdown.render(responseText);
+                }
+                document.querySelectorAll(`code`).forEach((el) => {
+                  hljs.highlightElement(el);
+                });
+          
+                window.scrollTo(0, 0);
+                message_box.scrollTo({ top: message_box.scrollHeight, behavior: "auto" });
+                controller.close();
+                reader.releaseLock();
+            }
+        });
+        await new Response(stream).text(); // 确保流完全处理完毕
+    } catch (error) {
+        console.error('Error fetching stream data:', error);
+    }
+}
+
+
+//
+
+
 hljs.addPlugin(new CopyButtonPlugin());
 
 function resizeTextarea(textarea) {
@@ -110,82 +208,83 @@ const ask_gpt = async (message) => {
     window.scrollTo(0, 0);
     await new Promise((r) => setTimeout(r, 1000));
     window.scrollTo(0, 0);
+    const payload = generatePayLoad(message);
+    await fetchStreamData(streamingUrl, payload);
+    // const response = await fetch(`/backend-api/v2/conversation`, {
+    //   method: `POST`,
+    //   signal: window.controller.signal,
+    //   headers: {
+    //     "content-type": `application/json`,
+    //     accept: `text/event-stream`,
+    //   },
+    //   body: JSON.stringify({
+    //     conversation_id: window.conversation_id,
+    //     action: `_ask`,
+    //     model: model.options[model.selectedIndex].value,
+    //     jailbreak: jailbreak.options[jailbreak.selectedIndex].value,
+    //     meta: {
+    //       id: window.token,
+    //       content: {
+    //         conversation: await get_conversation(window.conversation_id),
+    //         internet_access: document.getElementById("switch").checked,
+    //         content_type: "text",
+    //         parts: [
+    //           {
+    //             content: message,
+    //             role: "user",
+    //           },
+    //         ],
+    //       },
+    //     },
+    //   }),
+    // });
 
-    const response = await fetch(`/backend-api/v2/conversation`, {
-      method: `POST`,
-      signal: window.controller.signal,
-      headers: {
-        "content-type": `application/json`,
-        accept: `text/event-stream`,
-      },
-      body: JSON.stringify({
-        conversation_id: window.conversation_id,
-        action: `_ask`,
-        model: model.options[model.selectedIndex].value,
-        jailbreak: jailbreak.options[jailbreak.selectedIndex].value,
-        meta: {
-          id: window.token,
-          content: {
-            conversation: await get_conversation(window.conversation_id),
-            internet_access: document.getElementById("switch").checked,
-            content_type: "text",
-            parts: [
-              {
-                content: message,
-                role: "user",
-              },
-            ],
-          },
-        },
-      }),
-    });
+    // const reader = response.body.getReader();
 
-    const reader = response.body.getReader();
+    // while (true) {
+    //   const { value, done } = await reader.read();
+    //   if (done) break;
 
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
+    //   chunk = new TextDecoder().decode(value);
 
-      chunk = new TextDecoder().decode(value);
+    //   if (
+    //     chunk.includes(
+    //       `<form id="challenge-form" action="/backend-api/v2/conversation?`
+    //     )
+    //   ) {
+    //     chunk = `cloudflare token expired, please refresh the page.`;
+    //   }
 
-      if (
-        chunk.includes(
-          `<form id="challenge-form" action="/backend-api/v2/conversation?`
-        )
-      ) {
-        chunk = `cloudflare token expired, please refresh the page.`;
-      }
+    //   text += chunk;
 
-      text += chunk;
+    //   const objects         = chunk.match(/({.+?})/g);
 
-      // const objects         = chunk.match(/({.+?})/g);
+    //   try { if (JSON.parse(objects[0]).success === false) throw new Error(JSON.parse(objects[0]).error) } catch (e) {}
 
-      // try { if (JSON.parse(objects[0]).success === false) throw new Error(JSON.parse(objects[0]).error) } catch (e) {}
+    //   objects.forEach((object) => {
+    //       console.log(object)
+    //       try { text += h2a(JSON.parse(object).content) } catch(t) { console.log(t); throw new Error(t)}
+    //   });
 
-      // objects.forEach((object) => {
-      //     console.log(object)
-      //     try { text += h2a(JSON.parse(object).content) } catch(t) { console.log(t); throw new Error(t)}
-      // });
+    //   document.getElementById(`gpt_${window.token}`).innerHTML =
+    //     markdown.render(text);
+    //   document.querySelectorAll(`code`).forEach((el) => {
+    //     hljs.highlightElement(el);
+    //   });
 
-      document.getElementById(`gpt_${window.token}`).innerHTML =
-        markdown.render(text);
-      document.querySelectorAll(`code`).forEach((el) => {
-        hljs.highlightElement(el);
-      });
-
-      window.scrollTo(0, 0);
-      message_box.scrollTo({ top: message_box.scrollHeight, behavior: "auto" });
-    }
+    //   window.scrollTo(0, 0);
+    //   message_box.scrollTo({ top: message_box.scrollHeight, behavior: "auto" });
+    // }
 
     // if text contains :
-    if (
-      text.includes(
-        `instead. Maintaining this website and API costs a lot of money`
-      )
-    ) {
-      document.getElementById(`gpt_${window.token}`).innerHTML =
-        "An error occured, please reload / refresh cache and try again.";
-    }
+    // if (
+    //   text.includes(
+    //     `instead. Maintaining this website and API costs a lot of money`
+    //   )
+    // ) {
+    //   document.getElementById(`gpt_${window.token}`).innerHTML =
+    //     "An error occured, please reload / refresh cache and try again.";
+    // }
 
     add_message(window.conversation_id, "user", message);
     add_message(window.conversation_id, "assistant", text);

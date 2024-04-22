@@ -11,6 +11,11 @@ class Website:
                 'function': lambda: redirect('/chat'),
                 'methods': ['GET', 'POST']
             },
+            '/claude/chat': {
+                'function': self.claude_chat,
+                'methods': ['GET', 'POST']
+            },
+            
             '/chat/': {
                 'function': self._index,
                 'methods': ['GET', 'POST']
@@ -30,6 +35,9 @@ class Website:
             return redirect(f'/chat')
 
         return render_template('index.html', chat_id=conversation_id)
+    
+    def claude_chat(self):
+        return render_template('chat.html')
 
     def _index(self):
         return render_template('index.html', chat_id=f'{urandom(4).hex()}-{urandom(2).hex()}-{urandom(2).hex()}-{urandom(2).hex()}-{hex(int(time() * 1000))[2:]}')

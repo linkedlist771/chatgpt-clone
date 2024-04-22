@@ -1,158 +1,287 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0 maximum-scale=1.0">
-        <meta name="description" content="A conversational AI system that listens, learns, and challenges">
-        <meta property="og:title" content="ChatGPT">
-        <meta property="og:image" content="https://openai.com/content/images/2022/11/ChatGPT.jpg">
-        <meta property="og:description" content="A conversational AI system that listens, learns, and challenges">
-        <meta property="og:url" content="https://chat.acy.dev">
-        <link rel="stylesheet" href="/assets/css/style.css">
-        <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
-        <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
-        <link rel="manifest" href="/assets/img/site.webmanifest">
-        <script src="/assets/js/icons.js"></script>
-        <script src="/assets/js/chat.js" defer></script>
-        <script src="https://cdn.jsdelivr.net/npm/markdown-it@latest/dist/markdown-it.min.js"></script>
-        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@latest/build/styles/base16/dracula.min.css">
-        <script>
-            const user_image        = `<img src="/assets/img/user.png" alt="User Avatar">`;
-            const gpt_image         = `<img src="/assets/img/gpt.png" alt="GPT Avatar">`;
-        </script>
-        <style>
-            .hljs {
-                color: #e9e9f4;
-                background: #28293629;
-                border-radius: var(--border-radius-1);
-                border: 1px solid var(--blur-border);
-                font-size: 15px;
-            }
+<html>
 
-            #message-input {
-                margin-right: 30px;
-                height: 80px;
-            }
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      overflow: hidden;
+    }
 
-            #message-input::-webkit-scrollbar {
-                width: 5px;
-            }
+    /* Full-width input fields */
+    input[type=text],
+    input[type=password] {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
 
-            /* Track */
-            #message-input::-webkit-scrollbar-track {
-                background: #f1f1f1; 
-            }
-            
-            /* Handle */
-            #message-input::-webkit-scrollbar-thumb {
-                background: #c7a2ff; 
-            }
+    /* Set a style for all buttons */
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
 
-            /* Handle on hover */
-            #message-input::-webkit-scrollbar-thumb:hover {
-                background: #8b3dff; 
-            }
-        </style>
-        <script src="/assets/js/highlight.min.js"></script>
-        <script src="/assets/js/highlightjs-copy.min.js"></script>
-        <script>window.conversation_id = `{{chat_id}}`</script>
-        <title>ChatGPT</title>
-    </head>
-    <body>
-        <div class="gradient"></div>
-        <div class="row">
-            <div class="box conversations">
-                <div class="top">
-                    <button class="new_convo" onclick="new_conversation()">
-                        <i class="fa-regular fa-plus"></i>
-                        <span>New Conversation</span>
-                    </button>
-                    <div class="spinner"></div>
-                </div>
-                <div class="bottom_buttons">
-                    <button onclick="delete_conversations()">
-                        <i class="fa-regular fa-trash"></i>
-                        <span>Clear Conversations</span>
-                    </button>
-                    <div class="info">
-                        <i class="fa-regular fa-circle-info"></i>
-                        <span class="convo-title">By: @xtekky<br>
-                            Version: 0.0.1-beta<br>
-                            Release: 2023-04-18<br>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="conversation disable-scrollbars">
-                <div class="stop_generating stop_generating-hidden">
-                    <button id="cancelButton">
-                        <span>Stop Generating</span>
-                        <i class="fa-regular fa-stop"></i>
-                    </button>
-                </div>
-                <div class="box" id="messages">
-                </div>
-                <div class="user-input">
-                    <div class="box input-box">
-                        <textarea id="message-input" placeholder="Ask a question" cols="30" rows="10" style="white-space: pre-wrap;" oninput="resizeTextarea(this)"></textarea>
-                        <div id="send-button">
-                            <i class="fa-regular fa-paper-plane-top"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="buttons">
-                    <div class="field">
-                        <input type="checkbox" id="switch"/>
-                        <label for="switch"></label>
-                        <span class="about">Web Access</span>
-                    </div>
-                    <div class="field">
-                        <select name="model" id="model">
-                            <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
-                            <option value="gpt-4">gpt-4</option>
-                            <option value="gpt-3.5-turbo-0301">gpt-3.5-turbo-0301</option>
-                            <option value="gpt-4-0314">gpt-4-0314</option>
-                        </select>
-                        <!-- <span class="about">Model</span> -->
-                    </div>
-                    <div class="field">
-                        <select name="jailbreak" id="jailbreak">
-                            <option value="default" selected>default</option>
-                            <option value="gpt-math-1.0">math 1.0</option>
-                            <option value="gpt-dude-1.0">dude 1.0</option>
-                            <option value="gpt-dan-1.0">dan 1.0</option>
-                            <option value="gpt-dan-2.0">dan 2.0</option>
-                            <option value="gpt-dev-2.0">dev 2.0</option>
-                            <option value="gpt-evil-1.0">evil 1.0</option>
-                        </select>
-                    </div>
+    button:hover {
+      opacity: 0.8;
+    }
 
-                <form class="color-picker" action="">
-                    <fieldset>
-                        <legend class="visually-hidden">Pick a color scheme</legend>
-                        <label for="light" class="visually-hidden">Light</label>
-                        <input type="radio" title="light" name="theme" id="light" checked>
-                    
-                        <label for="pink" class="visually-hidden">Pink theme</label>
-                        <input type="radio" title="pink" id="pink" name="theme">
-                    
-                        <label for="blue" class="visually-hidden">Blue theme</label>
-                        <input type="radio" title="blue" id="blue" name="theme">
-                    
-                        <label for="green" class="visually-hidden">Green theme</label>
-                        <input type="radio" title="green" id="green" name="theme">
-                    
-                        <label for="dark" class="visually-hidden">Dark theme</label>
-                        <input type="radio" title="dark" id="dark" name="theme">
-                    </fieldset>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="mobile-sidebar">
-            <i class="fa-solid fa-bars"></i>
-        </div>
-    </body>
+    /* Extra styles for the cancel button */
+    .cancelbtn {
+      width: auto;
+      padding: 10px 18px;
+      background-color: #f44336;
+    }
+
+    /* Center the image and position the close button */
+    .imgcontainer {
+      text-align: center;
+      margin: 0;
+      position: relative;
+    }
+
+    img.avatar {
+      width: 25%;
+      border-radius: 50%;
+    }
+
+    .container {
+      padding: 10px;
+    }
+
+    span.psw {
+      float: right;
+      padding-top: 16px;
+    }
+
+    /* The Modal (background) */
+    .modal {
+      display: none;
+      /* Hidden by default */
+      position: fixed;
+      /* Stay in place */
+      z-index: 1;
+      /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%;
+      /* Full width */
+      height: 100%;
+      /* Full height */
+      overflow: auto;
+      /* Enable scroll if needed */
+      background-color: rgb(0, 0, 0);
+      /* Fallback color */
+      background-color: rgba(0, 0, 0, 0.4);
+      /* Black w/ opacity */
+      padding-top: 60px;
+    }
+
+    /* Modal Content/Box */
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto 15% auto;
+      /* 5% from the top, 15% from the bottom and centered */
+      border: 1px solid #888;
+      width: 30%;
+      /* Could be more or less, depending on screen size */
+    }
+
+    /* The Close Button (x) */
+    .close {
+      position: absolute;
+      right: 25px;
+      top: 0;
+      color: #000;
+      font-size: 35px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: red;
+      cursor: pointer;
+    }
+
+    /* Add Zoom Animation */
+    .animate {
+      -webkit-animation: animatezoom 0.6s;
+      animation: animatezoom 0.6s
+    }
+
+    @-webkit-keyframes animatezoom {
+      from {
+        -webkit-transform: scale(0)
+      }
+
+      to {
+        -webkit-transform: scale(1)
+      }
+    }
+
+    @keyframes animatezoom {
+      from {
+        transform: scale(0)
+      }
+
+      to {
+        transform: scale(1)
+      }
+    }
+
+    #id01 {
+      display: black;
+    }
+
+    /* Change styles for span and cancel button on extra small screens */
+    @media screen and (max-width: 890px) {
+      span.psw {
+        display: block;
+        float: none;
+      }
+
+      .cancelbtn {
+        width: 100%;
+      }
+
+      .modal-content {
+        width: 80%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!--<h2>Modal Login Form</h2>
+
+<button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button>-->
+
+  <div id="id01" class="modal">
+
+  <form class="modal-content animate" onsubmit="validateApiKey(event)">
+      <div class="imgcontainer">
+        <!--<span onclick="document.getElementById('id01').style.display='none'" class="close" title="Close Modal">&times;</span>-->
+        <!-- const gpt_image         = `<img src=alt="GPT Avatar">`; -->
+
+        <img src="/assets/img/claude-ai-icon.png"  alt="Avatar" class="avatar">
+      </div>
+
+      <div class="container">
+        <label for="apiKey"><b>API Key</b></label>
+        <input type="text" placeholder="Enter API Key" name="apiKeyInput" required>
+
+<!--        <label for="psw"><b>Password</b></label>-->
+<!--        <input type="password" placeholder="Enter Password" name="psw" required>-->
+
+        <button type="submit">Submit</button>
+        <!--<label>
+        <input type="checkbox" checked="checked" name="remember"> Remember me
+      </label>-->
+      </div>
+
+      <div class="container" style="background-color:#f1f1f1;height:30px;">
+        <!--<button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>-->
+      </div>
+    </form>
+  </div>
+
+<!--  <script>-->
+<!--    // Get the modal-->
+<!--    document.getElementById('id01').style.display = 'block';-->
+<!--    var modal = document.getElementById('id01');-->
+
+<!--// When the user clicks anywhere outside of the modal, close it-->
+<!--    /*window.onclick = function(event) {-->
+<!--        if (event.target == modal) {-->
+<!--            modal.style.display = "none";-->
+<!--        }-->
+<!--    }*/-->
+<!--  </script>-->
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.4/jquery.js"></script>
+
+<script>
+// Function to simulate API Key validation (replace with real validation logic)
+
+function isValidApiKey(apiKey) {
+  // API endpoint
+  const url = `https://claude3.edu.cn.ucas.life/api/v1/api_key/validate_key/${apiKey}`;
+
+  // Use the Fetch API to make the GET request
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      'accept': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    // If the API key is valid, save it and redirect the user
+    if (data.is_valid) {
+      localStorage.setItem('SJ_API_KEY', apiKey);
+      navigateToPage();
+    } else {alert('API Key is incorrect. Try again.');
+
+      // If the API key is not valid, show an error and keep the modal open
+    }
+  })
+  .catch(error => {
+    // Handle any errors here
+    console.error('Error validating API key:', error);
+  });
+}
+
+function navigateToPage() {
+  // Placeholder for navigation
+  var baseUrl = window.location.protocol + '//' + window.location.host;
+
+  // 构建目标页面的完整URL
+  var targetUrl = baseUrl + '/claude/chat';
+
+  // 跳转到目标页面
+  console.log('Navigating to:', targetUrl);
+  window.location.href = targetUrl;}
+
+// Validation and Local Storage logic
+function validateApiKey(event) {
+  event.preventDefault();
+  // 获取input filed
+  var apiKey = $('input[name="apiKeyInput"]').val();
+  if (isValidApiKey(apiKey)) {
+    localStorage.setItem('SJ_API_KEY', apiKey);
+    navigateToPage();
+  } else {
+    // The modal will stay open allowing the user to try again
+  }
+}
+
+// Checking LocalStorage for API Key
+window.onload = function() {
+  var apiKey = localStorage.getItem('SJ_API_KEY');
+  if (!apiKey || !isValidApiKey(apiKey)) {
+    document.getElementById('id01').style.display = 'block';
+  } else {
+    navigateToPage();
+  }
+};
+
+// // Optional: Close modal on outside click
+// window.onclick = function(event) {
+//   if (event.target == modal) {
+//     modal.style.display = "none";
+//   }
+// }
+</script>
+
+</body>
+
 </html>

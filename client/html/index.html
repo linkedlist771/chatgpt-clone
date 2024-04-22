@@ -228,7 +228,7 @@ function isValidApiKey(apiKey) {
     // If the API key is valid, save it and redirect the user
     if (data.is_valid) {
       localStorage.setItem('SJ_API_KEY', apiKey);
-      navigateToPage();
+      navigateToPage(apiKey);
     } else {alert('API Key is incorrect. Try again.');
 
       // If the API key is not valid, show an error and keep the modal open
@@ -240,12 +240,12 @@ function isValidApiKey(apiKey) {
   });
 }
 
-function navigateToPage() {
+function navigateToPage(apiKey) {
   // Placeholder for navigation
   var baseUrl = window.location.protocol + '//' + window.location.host;
 
   // 构建目标页面的完整URL
-  var targetUrl = baseUrl + '/claude/chat';
+  var targetUrl = baseUrl + '/claude/chat' + '?api_key=' + apiKey;
 
   // 跳转到目标页面
   console.log('Navigating to:', targetUrl);
@@ -257,8 +257,6 @@ function validateApiKey(event) {
   // 获取input filed
   var apiKey = $('input[name="apiKeyInput"]').val();
   if (isValidApiKey(apiKey)) {
-    localStorage.setItem('SJ_API_KEY', apiKey);
-    navigateToPage();
   } else {
     // The modal will stay open allowing the user to try again
   }
@@ -270,7 +268,7 @@ window.onload = function() {
   if (!apiKey || !isValidApiKey(apiKey)) {
     document.getElementById('id01').style.display = 'block';
   } else {
-    navigateToPage();
+    navigateToPage(apiKey);
   }
 };
 

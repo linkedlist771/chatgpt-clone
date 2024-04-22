@@ -1,4 +1,4 @@
-from flask import render_template, send_file, redirect
+from flask import render_template, send_file, redirect, request
 from time import time
 from os import urandom
 
@@ -37,7 +37,8 @@ class Website:
         return render_template('index.html', chat_id=conversation_id)
     
     def claude_chat(self):
-        return render_template('chat.html')
+        api_key = request.args.get('api_key')
+        return render_template('chat.html', api_key=api_key)
 
     def _index(self):
         return render_template('index.html', chat_id=f'{urandom(4).hex()}-{urandom(2).hex()}-{urandom(2).hex()}-{urandom(2).hex()}-{hex(int(time() * 1000))[2:]}')

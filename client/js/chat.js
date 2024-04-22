@@ -53,7 +53,7 @@ async function fetchStreamData(url, payload) {
 
     // 这里能从     localStorage.setItem('SJ_API_KEY', apiKey);
    // 这个地方获取吗？
-   const apiKey = localStorage.getItem('SJ_API_KEY');
+   var  apiKey = localStorage.getItem('SJ_API_KEY');
 
    alert(apiKey);
    if (apiKey == null || apiKey == undefined || apiKey == "null" || apiKey == "undefined")  {

@@ -22,6 +22,17 @@ const route = "/api/v1/claude/chat";
 const streamingUrl = `${url}${route}`;
 let conversationID = null;
 
+function log_out() {
+  localStorage.removeItem('SJ_API_KEY');
+
+  var baseUrl = window.location.protocol + '//' + window.location.host;
+
+  // 构建目标页面的完整URL
+  var targetUrl = baseUrl;
+  window.location.href = targetUrl;
+
+}
+
 
 function generatePayLoad(message) {
 
@@ -417,6 +428,7 @@ const load_conversation = async (conversation_id) => {
   );
   console.log(conversation, conversation_id);
 
+  // TODO: change the iteration rank of the user and the assistant. 
   for (item of conversation.items) {
     message_box.innerHTML += `
             <div class="message">

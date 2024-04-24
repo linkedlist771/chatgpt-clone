@@ -11,7 +11,9 @@ const spinner = box_conversations.querySelector(".spinner");
 const stop_generating = document.querySelector(`.stop_generating`);
 const send_button = document.querySelector(`#send-button`);
 let prompt_lock = false;
-
+let apiKey = null;
+let clientIdx = null;
+let clientType = null;
 
 
 //
@@ -31,16 +33,25 @@ function log_out() {
   var targetUrl = baseUrl;
   window.location.href = targetUrl;
 
+
+  
+}
+
+function switch_account(){
+  var baseUrl = window.location.protocol + '//' + window.location.host;
+  var targetUrl = baseUrl + '/claude/status' + '?api_key=' + apiKey;
+  window.location.href = targetUrl;  
 }
 
 
 function generatePayLoad(message) {
-
   const chosenModel = $("#model option:selected").text();
   var payload = {
     "stream": true,
     "model": chosenModel,
-    "message": message
+    "message": message,
+    "client_idx": clientIdx,
+    "client_type": clientType
   }
     ;
   if (conversationID === null) {
@@ -64,12 +75,7 @@ async function fetchStreamData(url, payload) {
 
     // 这里能从     localStorage.setItem('SJ_API_KEY', apiKey);
    // 这个地方获取吗？
-   var  apiKey = localStorage.getItem('SJ_API_KEY');
 
-  //  alert(apiKey);
-   if (apiKey == null || apiKey == undefined || apiKey == "null" || apiKey == "undefined")  {
-     apiKey = getQueryParam('api_key');
-   }
   //  alert(apiKey);
    
    console.log(conversationID);
@@ -568,7 +574,31 @@ const message_id = () => {
   return BigInt(`0b${unix}${random_bytes}`).toString();
 };
 
+function readAPIKey() {
+  apiKey = localStorage.getItem('SJ_API_KEY');
+  //  alert(apiKey);
+   if (apiKey == null || apiKey == undefined || apiKey == "null" || apiKey == "undefined")  {
+     apiKey = getQueryParam('api_key');
+     localStorage.setItem('SJ_API_KEY', apiKey);
+   }
+   console.log(`API Key: ${apiKey}`);
+}
+
+function readClientInfo(){
+  clientIdx = getQueryParam('client_idx');
+  clientType = getQueryParam('client_type');
+  if (clientIdx == null || clientIdx == undefined || clientIdx == "null" || clientIdx == "undefined" || clientType == null || clientType == undefined || clientType == "null" || clientType == "undefined") {
+    alert("请从选号页面进入聊天室");
+  }  
+  console.log(`Client Info: ${clientIdx} ${clientType}`);
+  
+
+}
+
+
 window.onload = async () => {
+  readAPIKey();
+  readClientInfo();
   load_settings_localstorage();
 
   conversations = 0;

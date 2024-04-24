@@ -1,0 +1,109 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f3f3;
+}
+
+#container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    width: calc(20% - 20px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.status {
+    font-size: 12px;
+    color: #888;
+}
+
+.plus {
+    background: #6200EA;
+    color: #ffffff;
+    padding: 3px 6px;
+    font-size: 10px;
+    border-radius: 3px;
+    float: right;
+}
+
+.normal {
+    background: #FFD600;
+    color: #000;
+    padding: 3px 6px;
+    font-size: 10px;
+    border-radius: 3px;
+    float: right;
+}
+
+/* Add this to your CSS file or within a <style> tag in your HTML document */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+  
+  .dropbtn {
+    background-color: #ffffff;
+    color: black;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    z-index: 1;
+    padding: 20px;
+    border-radius: 4px;
+  }
+  
+  .dropdown-content p {
+    color: black;
+    text-decoration: none;
+    display: block;
+  }
+  
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+  
+  /* Additional styling for the button when the dropdown content is shown */
+  .dropdown:hover .dropbtn {
+    background-color: #ebebeb;
+  }
+  
+  .bilibliBoard {
+    margin-left: 120px;
+    margin-right: 120px;
+    display: flex;
+    align-items: center; /* This centers the content vertically */
+    justify-content: center; /* This centers the content horizontally */
+    /* You may need to define a height if the container's size isn't determined by its content */
+  }
+  

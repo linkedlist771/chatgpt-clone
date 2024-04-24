@@ -83,7 +83,6 @@ async function fetchStreamData(url, payload) {
                     }
                     controller.enqueue(value);
                     let text = new TextDecoder().decode(value);
-                    console.log(text);
                     if (text.startsWith('<')) {
                         const regex = /<.*?>/;
                         const match = text.match(regex);
@@ -104,7 +103,7 @@ async function fetchStreamData(url, payload) {
                 document.querySelectorAll(`code`).forEach((el) => {
                   hljs.highlightElement(el);
                 });
-          
+                add_message(window.conversation_id, "assistant", responseText); 
                 window.scrollTo(0, 0);
                 message_box.scrollTo({ top: message_box.scrollHeight, behavior: "auto" });
                 controller.close();
@@ -298,7 +297,6 @@ const ask_gpt = async (message) => {
     // }
 
     add_message(window.conversation_id, "user", message);
-    add_message(window.conversation_id, "assistant", text);
 
     message_box.scrollTop = message_box.scrollHeight;
     await remove_cancel_button();
@@ -403,6 +401,7 @@ const set_conversation = async (conversation_id) => {
 
 const new_conversation = async () => {
   history.pushState({}, null, `/chat/`);
+  // new_conversation
   window.conversation_id = uuid();
   if(conversationID !== null) {
     conversationID = null;

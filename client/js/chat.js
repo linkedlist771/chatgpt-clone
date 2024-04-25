@@ -45,7 +45,7 @@ function switch_account(){
 
 
 function generatePayLoad(message) {
-  const chosenModel = $("#model option:selected").text();
+  const chosenModel = $("#model option:selected").val();
   var payload = {
     "stream": true,
     "model": chosenModel,

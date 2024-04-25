@@ -54,7 +54,7 @@ apiKey = localStorage.getItem('SJ_API_KEY');
             status.style.color = "red";
         }
         else {
-            status.style.color = "yellow";
+            status.style.color = "black";
         }
 
         const chineseStatus = document.createElement('div');

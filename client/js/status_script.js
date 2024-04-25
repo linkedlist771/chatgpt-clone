@@ -53,10 +53,13 @@ apiKey = localStorage.getItem('SJ_API_KEY');
         else if (cardData.status === "error") {
             status.style.color = "red";
         }
+        else {
+            status.style.color = "yellow";
+        }
 
         const chineseStatus = document.createElement('div');
         chineseStatus.className = 'chineseStatus';
-        chineseStatus.textContent = "状态: 可用";
+        chineseStatus.textContent = "状态: " + cardData.message;
 
         const plus = document.createElement('div');
         plus.className = cardData.type.toLowerCase();

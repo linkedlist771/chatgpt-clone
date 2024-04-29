@@ -1,18 +1,8 @@
-
-   
-//    function navigateToPage(apiKey) {
-//     // Placeholder for navigation
-//     var baseUrl = 
-  
-//     // 构建目标页面的完整URL
-//     var targetUrl = baseUrl + '/claude/chat' + '?api_key=' + apiKey;
-  
-//     // 跳转到目标页面
-//     console.log('Navigating to:', targetUrl);
-//     window.location.href = targetUrl;
-
-// }
 const targetURLBase = window.location.protocol + '//' + window.location.host + '/claude/chat';
+const baseURL = "https://claude3.edu.cn.ucas.life";
+const route = "/api/v1"; // client_status
+const apiKeyUrl = baseURL + route;
+
 
 function getQueryParam(key) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -112,10 +102,7 @@ apiKey = localStorage.getItem('SJ_API_KEY');
         }
     }
     
-    
-    const baseURL = "https://claude3.edu.cn.ucas.life";
-    const route = "/api/v1"; // client_status
-    const apiKeyUrl = baseURL + route;
+
     
     async function sendRequest(url, method, queryParams = null, body = null) {
         url = apiKeyUrl + url;

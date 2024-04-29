@@ -14,14 +14,20 @@ let prompt_lock = false;
 let apiKey = null;
 let clientIdx = null;
 let clientType = null;
+let fileConversionContent = [];
 
 
 //
 
 
 const url = "https://claude3.edu.cn.ucas.life";
-const route = "/api/v1/claude/chat";
-const streamingUrl = `${url}${route}`;
+const apiRoute = "/api/v1";
+const chatRoute =  "/claude/chat";
+const documentConversionRoute = "/claude/convert_document";
+// "/api/v1/claude/chat";
+
+const streamingUrl = `${url}${apiRoute}${chatRoute}`;
+const documentConversionUrl = `${url}${apiRoute}${documentConversionRoute}`;
 let conversationID = null;
 
 function log_out() {
@@ -36,6 +42,41 @@ function log_out() {
 
   
 }
+
+
+function triggerFileUpload() {
+  document.getElementById('fileInput').click();
+}
+
+
+function handleFiles(files) {
+  if (files.length > 0) {
+    var file = files[0];
+    var formData = new FormData();
+    formData.append('file', file);
+
+    // 使用fetch API发送文件
+    fetch(documentConversionUrl, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': apiKey
+    },
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+      fileConversionContent.push(data);
+      alert("上传成功");
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      alert("上传失败,不支持该文件格式");
+    });
+  }
+}
+
+
 
 function switch_account(){
   var baseUrl = window.location.protocol + '//' + window.location.host;
@@ -52,8 +93,12 @@ function generatePayLoad(message) {
     "message": message,
     "client_idx": clientIdx,
     "client_type": clientType
+  };
+  // fileConversionContent
+  if(fileConversionContent.length > 0) {
+    payload['attachments'] = fileConversionContent;
   }
-    ;
+
   if (conversationID === null) {
 
   }
@@ -125,6 +170,10 @@ async function fetchStreamData(url, payload) {
                 message_box.scrollTo({ top: message_box.scrollHeight, behavior: "auto" });
                 controller.close();
                 reader.releaseLock();
+                // 如果文件非空
+                if (fileConversionContent.length > 0) {
+                  fileConversionContent = [];
+                }
             }
         });
         await new Response(stream).text(); // 确保流完全处理完毕

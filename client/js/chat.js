@@ -66,6 +66,12 @@ function handleFiles(files) {
     .then(response => response.json())
     .then(data => {
       console.log('Success:', data);
+      // 判断键值对 'error' 在不在data里面
+      if ('error' in data) {
+        alert("上传失败,不支持该文件格式");
+        // 然后直接返回吗？
+        return;
+      }
       fileConversionContent.push(data);
       alert("上传成功");
     })

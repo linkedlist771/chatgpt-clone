@@ -18,9 +18,10 @@ let fileConversionContent = [];
 
 
 //
+// 
 
 
-const url = "https://claude3.edu.cn.ucas.life";
+const url = "http://198.23.176.34:6239";
 const apiRoute = "/api/v1";
 const chatRoute =  "/claude/chat";
 const documentConversionRoute = "/claude/convert_document";

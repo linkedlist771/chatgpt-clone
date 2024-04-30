@@ -1,5 +1,5 @@
 const targetURLBase = window.location.protocol + '//' + window.location.host + '/claude/chat';
-const baseURL = "https://claude3.edu.cn.ucas.life";
+const baseURL = "http://198.23.176.34:6239";
 const route = "/api/v1"; // client_status
 const apiKeyUrl = baseURL + route;
 

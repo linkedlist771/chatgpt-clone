@@ -139,6 +139,7 @@ function handleFiles(files) {
     }    
   })
 }
+}
 
 
 

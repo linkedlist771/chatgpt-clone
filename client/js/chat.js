@@ -129,7 +129,9 @@ function handleFiles(files) {
   if (files.length > 0) {
     // var file = files[0];
     // for each
-    files.forEach(file => {
+    for(var i = 0; i < files.length; i++)
+{
+    var file = files[i];
 
     if (file.type.startsWith('image/')) {
       handleImageFiles(file);
@@ -137,7 +139,7 @@ function handleFiles(files) {
     else {
       handleDocumentFiles(file);
     }    
-  })
+  }
 }
 }
 

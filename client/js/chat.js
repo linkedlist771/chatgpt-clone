@@ -120,16 +120,24 @@ function handleDocumentFiles(file){
 
 
 function handleFiles(files) {
+  if(files.length >= 5)
+  {
+    alert("一次最多上传5个文件");
+    return;
+  }
+  
   if (files.length > 0) {
-    var file = files[0];
+    // var file = files[0];
+    // for each
+    files.forEach(file => {
+
     if (file.type.startsWith('image/')) {
       handleImageFiles(file);
     }
     else {
       handleDocumentFiles(file);
-    }
-    
-  }
+    }    
+  })
 }
 
 

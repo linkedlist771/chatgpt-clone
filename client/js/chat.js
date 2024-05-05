@@ -15,7 +15,7 @@ let apiKey = null;
 let clientIdx = null;
 let clientType = null;
 let fileConversionContent = [];
-
+let imagesFileUUid = [];
 
 //
 
@@ -24,10 +24,12 @@ const url = "https://claude3.edu.cn.ucas.life";
 const apiRoute = "/api/v1";
 const chatRoute =  "/claude/chat";
 const documentConversionRoute = "/claude/convert_document";
+const imageUploadRoute = "/claude/upload_image";
 // "/api/v1/claude/chat";
 
 const streamingUrl = `${url}${apiRoute}${chatRoute}`;
 const documentConversionUrl = `${url}${apiRoute}${documentConversionRoute}`;
+const imageUploadUrl = `${url}${apiRoute}${imageUploadRoute}`;
 let conversationID = null;
 
 function log_out() {
@@ -49,10 +51,44 @@ function triggerFileUpload() {
 }
 
 
-function handleFiles(files) {
-  if (files.length > 0) {
-    var file = files[0];
+function handleImageFiles(file) {
+  var formData = new FormData();
+  formData.append('client_idx', clientIdx);
+  formData.append('client_type', clientType);
+  formData.append('file', file);
+
+  // 使用fetch API发送文件
+  fetch(imageUploadUrl, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Authorization': apiKey
+  },
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Success:', data);
+    // 判断键值对 'error' 在不在data里面
+    if ('error' in data) {
+      alert("上传图片失败。");
+      // 然后直接返回吗？
+      return;
+    }
+    const imageFileUUid = data['file_uuid'];
+    imagesFileUUid.push(imageFileUUid);
+    alert("上传成功");
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+    alert("上传图片失败。");
+  });
+
+}
+
+function handleDocumentFiles(file){
+
     var formData = new FormData();
+
     formData.append('file', file);
 
     // 使用fetch API发送文件
@@ -74,11 +110,25 @@ function handleFiles(files) {
       }
       fileConversionContent.push(data);
       alert("上传成功");
+
     })
     .catch((error) => {
       console.error('Error:', error);
       alert("上传失败,不支持该文件格式");
     });
+}
+
+
+function handleFiles(files) {
+  if (files.length > 0) {
+    var file = files[0];
+    if (file.type.startsWith('image/')) {
+      handleImageFiles(file);
+    }
+    else {
+      handleDocumentFiles(file);
+    }
+    
   }
 }
 
@@ -103,6 +153,9 @@ function generatePayLoad(message) {
   // fileConversionContent
   if(fileConversionContent.length > 0) {
     payload['attachments'] = fileConversionContent;
+  }
+  if (imagesFileUUid.length > 0) {
+    payload['files'] = imagesFileUUid;
   }
 
   if (conversationID === null) {
@@ -179,6 +232,9 @@ async function fetchStreamData(url, payload) {
                 // 如果文件非空
                 if (fileConversionContent.length > 0) {
                   fileConversionContent = [];
+                }
+                if (imagesFileUUid.length > 0) {
+                  imagesFileUUid = [];
                 }
             }
         });

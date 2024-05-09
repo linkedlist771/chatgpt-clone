@@ -489,7 +489,17 @@ select {
     flex-direction: column;
     gap: 16px;
     overflow: auto;
+    /* 设置最小高为200像素*/
+    min-height: 200px;
+
+
 }
+
+.conversations-container{
+height: 300px; /* 设置容器高度 */
+overflow-y: auto; /* 添加垂直滚动条 */
+}
+
 
 #cursor {
     line-height: 17px;

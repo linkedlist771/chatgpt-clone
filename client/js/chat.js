@@ -17,6 +17,7 @@ let clientType = null;
 let conversationID = null;
 let fileConversionContent = [];
 let imagesFileUUid = [];
+let abortController = null;
 
 //
 
@@ -214,7 +215,9 @@ async function fetchStreamData(url, payload) {
                 'Content-Type': 'application/json', // 指定请求体格式为 JSON
                 'Authorization': apiKey
             },
-            body: JSON.stringify(payload) // 将 payload 对象转换为 JSON 字符串
+            body: JSON.stringify(payload) ,// 将 payload 对象转换为 JSON 字符串
+            signal: abortController.signal // 将 AbortController 的 signal 传递给 fetch 请求
+
         });
 
         const reader = response.body.getReader();
@@ -327,7 +330,7 @@ const ask_gpt = async (message) => {
 
     add_conversation(window.conversation_id, message.substr(0, 20));
     window.scrollTo(0, 0);
-    window.controller = new AbortController();
+    // window.controller = new AbortController();
 
     jailbreak = document.getElementById("jailbreak");
     model = document.getElementById("model");
@@ -712,8 +715,10 @@ const load_conversations = async (limit, offset, loader) => {
 };
 
 document.getElementById(`cancelButton`).addEventListener(`click`, async () => {
-  window.controller.abort();
-  console.log(`aborted ${window.conversation_id}`);
+  if (abortController) {
+    abortController.abort(); // 取消请求
+    abortController = null;
+    }  console.log(`aborted ${window.conversation_id}`);
 });
 
 function h2a(str1) {

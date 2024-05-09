@@ -6,8 +6,9 @@ const colorThemes = document.querySelectorAll('[name="theme"]');
 const markdown = window.markdownit();
 const message_box = document.getElementById(`messages`);
 const message_input = document.getElementById(`message-input`);
-const box_conversations = document.querySelector(`.top`);
-const spinner = box_conversations.querySelector(".spinner");
+const __box_conversations = document.querySelector(`.top`);
+const box_conversations = __box_conversations.querySelector(`.conversations-container`);
+const spinner = __box_conversations.querySelector(".spinner");
 const stop_generating = document.querySelector(`.stop_generating`);
 const send_button = document.querySelector(`#send-button`);
 let prompt_lock = false;
@@ -18,6 +19,7 @@ let conversationID = null;
 let fileConversionContent = [];
 let imagesFileUUid = [];
 let abortController = null;
+let conversationHistory = null;
 
 //
 
@@ -27,11 +29,15 @@ const apiRoute = "/api/v1";
 const chatRoute =  "/claude/chat";
 const documentConversionRoute = "/claude/convert_document";
 const imageUploadRoute = "/claude/upload_image";
+const conversationHistoryRoute = "/conversation_history/get_conversation_histories";
+const removeConversationHistoryRoute = "/conversation_history/delete_all_conversations";
 // "/api/v1/claude/chat";
 
 const streamingUrl = `${url}${apiRoute}${chatRoute}`;
 const documentConversionUrl = `${url}${apiRoute}${documentConversionRoute}`;
 const imageUploadUrl = `${url}${apiRoute}${imageUploadRoute}`;
+const conversationHistoryUrl = `${url}${apiRoute}${conversationHistoryRoute}`;
+const removeConversationHistoryUrl = `${url}${apiRoute}${removeConversationHistoryRoute}`;
 
 function log_out() {
   localStorage.removeItem('SJ_API_KEY');
@@ -41,15 +47,61 @@ function log_out() {
   // 构建目标页面的完整URL
   var targetUrl = baseUrl;
   window.location.href = targetUrl;
-
-
-  
 }
 
 
 function triggerFileUpload() {
   document.getElementById('fileInput').click();
 }
+
+
+async function fetchConversation(clientIdx, conversationType, apiKey) {
+  try {
+    const response = await fetch(conversationHistoryUrl,
+    {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        client_idx: clientIdx,
+        conversation_type: conversationType,
+        api_key: apiKey
+      }
+      )
+    });
+    
+    return response.json(); // Return the parsed JSON data
+  } catch (error) {
+      console.error('Error:', error);
+  }
+}
+
+async function deleteAllConversation(clientIdx, conversationType, apiKey) {
+  try {
+    const response = await fetch(removeConversationHistoryUrl,
+    {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        client_idx: clientIdx,
+        conversation_type: conversationType,
+        api_key: apiKey
+      }
+      )
+    });
+    return response.json(); // Return the parsed JSON data
+  }
+  catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+
 
 
 function handleImageFiles(file) {
@@ -171,16 +223,7 @@ function generatePayLoad(message) {
   }
 
   if (conversationID === null) {
-
-    // 然后从loaclstorage里面获取conversationID， 如果没有的话， 就赋值为null
-    let raw_storage = JSON.parse(localStorage.getItem(`conversation:${conversation_id}`));
-    if (raw_storage) {
-      conversationID = raw_storage.client_conversation_id;
-      payload["conversation_id"] = conversationID;
-    }
-    else {
-      // 都没有，那么就不管。 应该是这样， emmm 目前来看是这样的。
-    }
+      
 
   }
   else {
@@ -298,6 +341,7 @@ message_input.addEventListener("focus", () => {
 });
 
 const delete_conversations = async () => {
+  await delete_conversations(clientIdx, clientType, apiKey);
   localStorage.clear();
   await new_conversation();
 };
@@ -378,84 +422,7 @@ const ask_gpt = async (message) => {
     window.scrollTo(0, 0);
     const payload = generatePayLoad(message);
     await fetchStreamData(streamingUrl, payload);
-    // const response = await fetch(`/backend-api/v2/conversation`, {
-    //   method: `POST`,
-    //   signal: window.controller.signal,
-    //   headers: {
-    //     "content-type": `application/json`,
-    //     accept: `text/event-stream`,
-    //   },
-    //   body: JSON.stringify({
-    //     conversation_id: window.conversation_id,
-    //     action: `_ask`,
-    //     model: model.options[model.selectedIndex].value,
-    //     jailbreak: jailbreak.options[jailbreak.selectedIndex].value,
-    //     meta: {
-    //       id: window.token,
-    //       content: {
-    //         conversation: await get_conversation(window.conversation_id),
-    //         internet_access: document.getElementById("switch").checked,
-    //         content_type: "text",
-    //         parts: [
-    //           {
-    //             content: message,
-    //             role: "user",
-    //           },
-    //         ],
-    //       },
-    //     },
-    //   }),
-    // });
-
-    // const reader = response.body.getReader();
-
-    // while (true) {
-    //   const { value, done } = await reader.read();
-    //   if (done) break;
-
-    //   chunk = new TextDecoder().decode(value);
-
-    //   if (
-    //     chunk.includes(
-    //       `<form id="challenge-form" action="/backend-api/v2/conversation?`
-    //     )
-    //   ) {
-    //     chunk = `cloudflare token expired, please refresh the page.`;
-    //   }
-
-    //   text += chunk;
-
-    //   const objects         = chunk.match(/({.+?})/g);
-
-    //   try { if (JSON.parse(objects[0]).success === false) throw new Error(JSON.parse(objects[0]).error) } catch (e) {}
-
-    //   objects.forEach((object) => {
-    //       console.log(object)
-    //       try { text += h2a(JSON.parse(object).content) } catch(t) { console.log(t); throw new Error(t)}
-    //   });
-
-    //   document.getElementById(`gpt_${window.token}`).innerHTML =
-    //     markdown.render(text);
-    //   document.querySelectorAll(`code`).forEach((el) => {
-    //     hljs.highlightElement(el);
-    //   });
-
-    //   window.scrollTo(0, 0);
-    //   message_box.scrollTo({ top: message_box.scrollHeight, behavior: "auto" });
-    // }
-
-    // if text contains :
-    // if (
-    //   text.includes(
-    //     `instead. Maintaining this website and API costs a lot of money`
-    //   )
-    // ) {
-    //   document.getElementById(`gpt_${window.token}`).innerHTML =
-    //     "An error occured, please reload / refresh cache and try again.";
-    // }
-
     add_message(window.conversation_id, "user", message);
-
     message_box.scrollTop = message_box.scrollHeight;
     await remove_cancel_button();
     prompt_lock = false;
@@ -505,6 +472,7 @@ const clear_conversations = async () => {
       }
     }
   }
+
 };
 
 const clear_conversation = async () => {
@@ -601,10 +569,30 @@ const store_client_information = async () => {
 
 
 const load_conversation = async (conversation_id) => {
-  let conversation = await JSON.parse(
-    localStorage.getItem(`conversation:${conversation_id}`)
-  );
-  console.log(conversation, conversation_id);
+  // let conversation = await JSON.parse(
+  //   localStorage.getItem(`conversation:${conversation_id}`)
+  // );
+  // console.log(conversation, conversation_id);
+  let __conversation;
+  for (const conversation_idx in conversationHistory) {
+    __conversation = conversationHistory[conversation_idx];
+    if (__conversation.conversation_id == conversation_id) {
+      break;
+    }
+}
+
+  if(conversationID===null) {
+    conversationID = conversation_id;
+  }
+
+  const conversation = {
+    items: __conversation['messages']
+  };
+  
+  const conversationModel  = __conversation['model'];
+   // 设置下拉框的值为当前会话的模型
+   const modelSelect = document.getElementById('model');
+   modelSelect.value = conversationModel;
 
   // TODO: change the iteration rank of the user and the assistant. 
   for (item of conversation.items) {
@@ -686,14 +674,31 @@ const add_message = async (conversation_id, role, content) => {
 const load_conversations = async (limit, offset, loader) => {
   //console.log(loader);
   //if (loader === undefined) box_conversations.appendChild(spinner);
-
+  spinner.style.display = "block";
+  box_conversations.style.display = "none";
+  
+  conversationHistory = await fetchConversation(clientIdx, clientType, apiKey);
   let conversations = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    if (localStorage.key(i).startsWith("conversation:")) {
-      let conversation = localStorage.getItem(localStorage.key(i));
-      conversations.push(JSON.parse(conversation));
+  // for (let i = 0; i < localStorage.length; i++) {
+  //   if (localStorage.key(i).startsWith("conversation:")) {
+  //     let conversation = localStorage.getItem(localStorage.key(i));
+  //     conversations.push(JSON.parse(conversation));
+  //   }
+  // }
+
+    for (const conversation_idx in conversationHistory) {
+          const conversation = conversationHistory[conversation_idx];
+
+          conversations.push(
+            JSON.parse(
+              JSON.stringify({
+                id: conversation.conversation_id,
+                title: conversation['messages'][0].content.substr(offset, limit)
+              })
+            )
+          );
+      
     }
-  }
 
   //if (loader === undefined) spinner.parentNode.removeChild(spinner)
   await clear_conversations();
@@ -714,6 +719,8 @@ const load_conversations = async (limit, offset, loader) => {
   document.querySelectorAll(`code`).forEach((el) => {
     hljs.highlightElement(el);
   });
+  spinner.style.display = "none";
+  box_conversations.style.display = "block";
 };
 
 document.getElementById(`cancelButton`).addEventListener(`click`, async () => {

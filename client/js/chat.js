@@ -343,7 +343,9 @@ message_input.addEventListener("focus", () => {
 
 const delete_conversations = async () => {
   await deleteAllConversation(clientIdx, clientType, apiKey);
-  localStorage.clear();
+  // localStorage.clear();
+  // 这里只需要把conversation id 删了就行了
+  conversationID = null;
   await new_conversation();
 };
 

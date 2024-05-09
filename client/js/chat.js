@@ -209,6 +209,8 @@ async function fetchStreamData(url, payload) {
    console.log(conversationID);
     var responseText = "";
     try {
+        abortController = new AbortController(); // 创建 AbortController 实例
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {

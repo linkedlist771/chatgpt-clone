@@ -341,7 +341,7 @@ message_input.addEventListener("focus", () => {
 });
 
 const delete_conversations = async () => {
-  await delete_conversations(clientIdx, clientType, apiKey);
+  await deleteAllConversation(clientIdx, clientType, apiKey);
   localStorage.clear();
   await new_conversation();
 };

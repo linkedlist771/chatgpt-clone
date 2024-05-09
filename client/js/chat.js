@@ -342,7 +342,7 @@ message_input.addEventListener("focus", () => {
 
 const delete_conversations = async () => {
   await deleteAllConversation(clientIdx, clientType, apiKey);
-  localStorage.clear();
+  conversationID = null;
   await new_conversation();
 };
 

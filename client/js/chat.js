@@ -14,6 +14,7 @@ let prompt_lock = false;
 let apiKey = null;
 let clientIdx = null;
 let clientType = null;
+let conversationID = null;
 let fileConversionContent = [];
 let imagesFileUUid = [];
 
@@ -30,7 +31,6 @@ const imageUploadRoute = "/claude/upload_image";
 const streamingUrl = `${url}${apiRoute}${chatRoute}`;
 const documentConversionUrl = `${url}${apiRoute}${documentConversionRoute}`;
 const imageUploadUrl = `${url}${apiRoute}${imageUploadRoute}`;
-let conversationID = null;
 
 function log_out() {
   localStorage.removeItem('SJ_API_KEY');
@@ -171,6 +171,16 @@ function generatePayLoad(message) {
 
   if (conversationID === null) {
 
+    // 然后从loaclstorage里面获取conversationID， 如果没有的话， 就赋值为null
+    let raw_storage = JSON.parse(localStorage.getItem(`conversation:${conversation_id}`));
+    if (raw_storage) {
+      conversationID = raw_storage.client_conversation_id;
+      payload["conversation_id"] = conversationID;
+    }
+    else {
+      // 都没有，那么就不管。 应该是这样， emmm 目前来看是这样的。
+    }
+
   }
   else {
     payload["conversation_id"] = conversationID;
@@ -184,6 +194,8 @@ function getQueryParam(key) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(key);
 }
+
+
 
 
 async function fetchStreamData(url, payload) {
@@ -221,6 +233,8 @@ async function fetchStreamData(url, payload) {
                         if (match) {
                             if (conversationID === null) {
                                 conversationID = match[0].slice(1, -1);
+                                await store_client_information();
+                                // 这里定义一个函数用于赋值client information
                             }
                             // replace the match part with empty string
                             text = text.replace(regex, '');
@@ -550,6 +564,37 @@ const new_conversation = async () => {
   await load_conversations(20, 0, true);
 };
 
+
+const store_client_information = async () => {
+
+  /// 从localstorage里面获取client_idx, client_type, client_conversation_id
+  /// 如果存在， 那么就赋值， 如果不存在的话， 就赋值为null。
+
+  raw_storage = JSON.parse(
+    localStorage.getItem(`conversation:${conversation_id}`)
+  );
+
+  if (raw_storage) {
+  if (clientIdx !== null && 
+    clientType !== null && 
+    conversationID !== null) {
+    raw_storage.client_idx = clientIdx;
+    raw_storage.client_type = clientType;
+    raw_storage.client_conversation_id = conversationID;
+  }
+}
+
+  // 判断有没有这个键 r
+
+  localStorage.setItem(
+    `conversation:${conversation_id}`,
+    JSON.stringify(raw_storage)
+  ); // update conversation
+
+
+}
+
+
 const load_conversation = async (conversation_id) => {
   let conversation = await JSON.parse(
     localStorage.getItem(`conversation:${conversation_id}`)
@@ -605,6 +650,11 @@ const add_conversation = async (conversation_id, title) => {
         id: conversation_id,
         title: title,
         items: [],
+        // 这里还要加三个字段，分别是client_idx, client_type, client_conversation_id
+        // 但是哈，这里还存在一个问题， 就是如果更新了reids数据库后索引可能会变 
+        client_idx: null,
+        client_type: null,
+        client_conversation_id: null
       })
     );
   }
@@ -625,6 +675,8 @@ const add_message = async (conversation_id, role, content) => {
     JSON.stringify(before_adding)
   ); // update conversation
 };
+
+
 
 const load_conversations = async (limit, offset, loader) => {
   //console.log(loader);
@@ -654,7 +706,6 @@ const load_conversations = async (limit, offset, loader) => {
     </div>
     `;
   }
-
   document.querySelectorAll(`code`).forEach((el) => {
     hljs.highlightElement(el);
   });
